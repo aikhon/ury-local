@@ -1,0 +1,17 @@
+ARG BASE_IMAGE=ury-erp-base:v15
+FROM ${BASE_IMAGE}
+
+USER frappe
+WORKDIR /home/frappe/frappe-bench
+
+# Replace the app fetched during the original build with the local checkout.
+RUN rm -rf apps/ury
+COPY --chown=frappe:frappe . apps/ury/
+
+RUN ./env/bin/pip install -e apps/ury \
+    && cd apps/ury \
+    && yarn install \
+    && yarn build \
+    && cd ../.. \
+    && ln -s ../assets sites/assets \
+    && bench build --app ury
